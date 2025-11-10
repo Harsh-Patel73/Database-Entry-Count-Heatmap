@@ -33,7 +33,7 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: |
-          python application-tracker.py
+          python ApplicationHeatmap/application-tracker.py
 
       - name: Upload HTML artifact (actual)
         uses: actions/upload-artifact@v4
