@@ -4,9 +4,7 @@ import os
 from dotenv import load_dotenv
 import plotly.graph_objects as go
 
-# -----------------------------
 # Load environment variables
-# -----------------------------
 load_dotenv()
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
@@ -21,9 +19,7 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-# -----------------------------
 # Fetch applications from Notion
-# -----------------------------
 def get_applications():
     all_results = []
     has_more = True
@@ -40,9 +36,7 @@ def get_applications():
         next_cursor = data.get("next_cursor")
     return all_results
 
-# -----------------------------
 # Count applications per day
-# -----------------------------
 def count_per_day(applications):
     counts = {}
     for app in applications:
@@ -54,52 +48,37 @@ def count_per_day(applications):
         counts[date_str] = counts.get(date_str, 0) + 1
     return counts
 
-# -----------------------------
-# Draw interactive GitHub-style grid
-# -----------------------------
+# Draw interactive grid
 def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_grid.html"):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     today = datetime.date.today()
-    start_date = today - datetime.timedelta(days=59)  # last 60 days including today
+    start_date = today - datetime.timedelta(days=59) 
     dates = [start_date + datetime.timedelta(days=i) for i in range(60)]
-    total_weeks = (len(dates) + 6) // 7  # ceiling division for grid layout
+    total_weeks = (len(dates) + 6) // 7
 
-    # Prepare z-values (numeric) and hover text
-    z = [[0 for _ in range(total_weeks)] for _ in range(7)]
+    z = [[None for _ in range(total_weeks)] for _ in range(7)]
     hover_text = [[None for _ in range(total_weeks)] for _ in range(7)]
 
     for i, d in enumerate(dates):
         week_idx = i // 7
-        day_idx = d.weekday()  # Monday=0
+        day_idx = d.weekday()
         val = counts.get(d.isoformat(), 0)
-        hover_text[day_idx][week_idx] = f"{d}: {val} application{'s' if val != 1 else ''}"
         z[day_idx][week_idx] = val
-
-    # Define discrete colorscale for GitHub-style
-    def discrete_colorscale(val):
-        if val == 0:
-            return 0
-        elif val < 10:
-            return 1
-        elif val < 25:
-            return 2
-        else:
-            return 3
-
-    z_colors = [[discrete_colorscale(z[y][x]) for x in range(total_weeks)] for y in range(7)]
+        hover_text[day_idx][week_idx] = f"{d}: {val} application{'s' if val != 1 else ''}"
 
     colorscale = [
-        [0, '#ebedf0'],    # gray
-        [0.25, '#e74c3c'], # red <10
-        [0.5, '#f1c40f'],  # yellow 10-24
-        [1, '#2ecc71']     # green 25+
+        [0.0, "#ebedf0"],
+        [0.25, "#e74c3c"],
+        [0.5, "#f1c40f"], 
+        [1.0, "#2ecc71"]  
     ]
+    capped_z = [[min(val or 0, 25) for val in row] for row in z]
 
     fig = go.Figure(go.Heatmap(
-        z=z_colors,
+        z=capped_z,
         text=hover_text,
-        hoverinfo='text',
+        hoverinfo="text",
         x=list(range(total_weeks)),
         y=list(range(7)),
         colorscale=colorscale,
@@ -107,26 +86,23 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
         xgap=2,
         ygap=2,
         zmin=0,
-        zmax=3
+        zmax=25,
     ))
 
     fig.update_yaxes(autorange="reversed", showgrid=False, zeroline=False, visible=False)
     fig.update_xaxes(showgrid=False, zeroline=False, visible=False, scaleanchor="y")
+
     fig.update_layout(
-        width=total_weeks*20,
-        height=7*20,
-        margin=dict(l=10,r=10,t=10,b=10),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        width=total_weeks * 20,
+        height=7 * 20,
+        margin=dict(l=10, r=10, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
 
-    # Save HTML without mode bar
-    fig.write_html(output_path, include_plotlyjs='cdn', full_html=True, config={'displayModeBar': False})
+    fig.write_html(output_path, include_plotlyjs="cdn", full_html=True, config={"displayModeBar": False})
     print(f"Interactive grid saved to {output_path}")
 
-# -----------------------------
-# Main
-# -----------------------------
 if __name__ == "__main__":
     applications = get_applications()
     daily_counts = count_per_day(applications)
