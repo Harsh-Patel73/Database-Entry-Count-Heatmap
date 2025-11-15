@@ -3,6 +3,7 @@ import datetime
 import os
 from dotenv import load_dotenv
 import plotly.graph_objects as go
+from dateutil.parser import isoparse
 
 # Load environment variables
 load_dotenv()
@@ -37,8 +38,6 @@ def get_applications():
     return all_results
 
 # Count applications per day
-from dateutil.parser import isoparse
-
 def count_per_day(applications):
     counts = {}
     for app in applications:
