@@ -20,7 +20,9 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
+# ---------------------------
 # Fetch applications from Notion
+# ---------------------------
 def get_applications():
     all_results = []
     has_more = True
@@ -37,31 +39,34 @@ def get_applications():
         next_cursor = data.get("next_cursor")
     return all_results
 
+# ---------------------------
 # Count applications per day
+# ---------------------------
 def count_per_day(applications):
     counts = {}
     for app in applications:
-        props = app["properties"]
-        date_field = props.get("Date Applied", {}).get("date")
+        props = app.get("properties", {})
+        date_field = props.get("Application Date", {}).get("date")
         if not date_field:
             continue
-        # Convert ISO timestamp to date only
         date_str = isoparse(date_field["start"]).date().isoformat()
         counts[date_str] = counts.get(date_str, 0) + 1
+    print(f"[DEBUG] Daily counts: {counts}")
     return counts
 
-
-# Draw interactive grid
+# ---------------------------
+# Draw interactive GitHub-style grid
+# ---------------------------
 def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_grid.html"):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     today = datetime.date.today()
-    start_date = today - datetime.timedelta(days=59) 
+    start_date = today - datetime.timedelta(days=59)
     dates = [start_date + datetime.timedelta(days=i) for i in range(60)]
     total_weeks = (len(dates) + 6) // 7
 
-    z = [[None for _ in range(total_weeks)] for _ in range(7)]
-    hover_text = [[None for _ in range(total_weeks)] for _ in range(7)]
+    z = [[0 for _ in range(total_weeks)] for _ in range(7)]
+    hover_text = [["" for _ in range(total_weeks)] for _ in range(7)]
 
     for i, d in enumerate(dates):
         week_idx = i // 7
@@ -73,8 +78,8 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
     colorscale = [
         [0.0, "#ebedf0"],
         [0.25, "#e74c3c"],
-        [0.5, "#f1c40f"], 
-        [1.0, "#2ecc71"]  
+        [0.5, "#f1c40f"],
+        [1.0, "#2ecc71"]
     ]
     capped_z = [[min(val or 0, 25) for val in row] for row in z]
 
@@ -106,7 +111,11 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
     fig.write_html(output_path, include_plotlyjs="cdn", full_html=True, config={"displayModeBar": False})
     print(f"Interactive grid saved to {output_path}")
 
+# ---------------------------
+# MAIN
+# ---------------------------
 if __name__ == "__main__":
     applications = get_applications()
+    print(f"[DEBUG] Fetched {len(applications)} applications from Notion.")
     daily_counts = count_per_day(applications)
-    draw_interactive_grid(daily_counts, output_path="ApplicationHeatmap/interactive_grid.html")
+    draw_interactive_grid(daily_counts)
