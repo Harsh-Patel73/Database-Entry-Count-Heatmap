@@ -72,7 +72,7 @@ def draw_interactive_grid(counts, output_path="ApplicationHeatmap/interactive_gr
         [0.0, "#ebedf0"],
         [0.25, "#fa1900"],
         [0.5, "#eeeb49"], 
-        [1.0, "#2ecc71"]  
+        [1.0, "#00ff22"]  
     ]
 
     fig = go.Figure(go.Heatmap(
