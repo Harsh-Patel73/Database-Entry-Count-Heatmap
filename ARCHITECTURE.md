@@ -1,8 +1,8 @@
-# System Architecture - Job Tracker Heatmap for Notion
+# System Architecture - Database Entry Count Heatmap
 
 ## Overview
 
-This project automatically fetches job application data from a Notion database and generates an interactive heatmap visualization, deployed daily via GitHub Actions to GitHub Pages.
+This project automatically fetches database entry data from a Notion database and generates an interactive heatmap visualization, deployed daily via GitHub Actions to GitHub Pages.
 
 ---
 
@@ -17,7 +17,7 @@ This project automatically fetches job application data from a Notion database a
     │   USER INPUT     │                              │      OUTPUT              │
     │                  │                              │                          │
     │  Notion Database │                              │  GitHub Pages Website    │
-    │  (Job Apps Data) │                              │  (Interactive Heatmap)   │
+    │  (Entry Data)    │                              │  (Interactive Heatmap)   │
     └────────┬─────────┘                              └──────────▲───────────────┘
              │                                                   │
              │ Notion API                                        │ Deploy
@@ -61,18 +61,18 @@ This project automatically fetches job application data from a Notion database a
 │  DATABASE       │  Query   │  ┌─────────────────────────────────────────────┐   │
 │                 │ ────────▶│  │         get_applications()                  │   │
 │  ┌───────────┐  │ (Paginated)│  │                                            │   │
-│  │Job App 1  │  │          │  │  • POST to Notion API                       │   │
-│  │Job App 2  │  │          │  │  • Paginate (100 items/request)             │   │
-│  │Job App 3  │  │          │  │  • Return all records                       │   │
+│  │ Entry 1   │  │          │  │  • POST to Notion API                       │   │
+│  │ Entry 2   │  │          │  │  • Paginate (100 items/request)             │   │
+│  │ Entry 3   │  │          │  │  • Return all records                       │   │
 │  │   ...     │  │          │  └──────────────────┬──────────────────────────┘   │
-│  │Job App N  │  │          │                     │                               │
+│  │ Entry N   │  │          │                     │                               │
 │  └───────────┘  │          │                     ▼ List[dict]                    │
 │                 │          │  ┌─────────────────────────────────────────────┐   │
 │  Fields:        │          │  │         count_per_day()                     │   │
-│  - App Date     │          │  │                                             │   │
-│  - Company      │          │  │  • Extract "Application Date"               │   │
+│  - Date         │          │  │                                             │   │
+│  - Name         │          │  │  • Extract date field                       │   │
 │  - Status       │          │  │  • Parse ISO date format                    │   │
-│  - etc...       │          │  │  • Count apps per day                       │   │
+│  - etc...       │          │  │  • Count entries per day                    │   │
 └─────────────────┘          │  └──────────────────┬──────────────────────────┘   │
                              │                     │                               │
                              │                     ▼ Dict{date: count}             │
@@ -192,7 +192,7 @@ Sat │ 0  │    │ 0  │    │ 1  │    │ 0  │    │ 2  │    │ 0 
 Sun │ 0  │    │ 0  │    │ 0  │    │ 0  │    │ 0  │    │ 0  │    │ 0  │    │ 0  │
     └────┘    └────┘    └────┘    └────┘    └────┘    └────┘    └────┘    └────┘
 
-    COLOR SCALE (Applications per day)
+    COLOR SCALE (Entries per day)
     ┌────────────────────────────────────────────────────────────────────────────┐
     │                                                                            │
     │    ░░░░      ████      ████      ████      ████                           │
@@ -210,7 +210,7 @@ Sun │ 0  │    │ 0  │    │ 0  │    │ 0  │    │ 0  │    │ 0 
 ## File Structure
 
 ```
-JobTrackerScript for Notion/
+Database-Entry-Count-Heatmap/
 │
 ├── .github/
 │   └── workflows/
@@ -279,7 +279,7 @@ JobTrackerScript for Notion/
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Data Source** | Notion API | Job application database |
+| **Data Source** | Notion API | Database entries |
 | **Runtime** | Python 3.11 | Script execution |
 | **HTTP Client** | requests | API communication |
 | **Visualization** | Plotly | Interactive heatmap |
