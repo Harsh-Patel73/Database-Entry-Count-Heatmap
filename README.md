@@ -1,0 +1,1 @@
+Built a Python automation that integrates with Notion to track daily job application activity and visualize progress using a dynamically generated SVG heatmap. The system automatically updates via GitHub Actions, color-coding each day based on application volume to provide a clear, at-a-glance view of consistency and effort over time.
